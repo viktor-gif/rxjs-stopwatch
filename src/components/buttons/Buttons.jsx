@@ -5,9 +5,13 @@ const Buttons = (props) => {
   return (
     <div className={s.stopWatchButtons}>
       {props.status === "stop" && <button onClick={props.start}>Start</button>}
-      {props.status === "run" && <button onClick={props.stop}>Stop</button>}
+      {(props.status === "run" || props.status === "reset") && (
+        <button onClick={props.stop} className={s.stopButton}>
+          Stop
+        </button>
+      )}
       <button onClick={props.wait}>Wait</button>
-      <button>Reset</button>
+      <button onClick={props.reset}>Reset</button>
     </div>
   );
 };
