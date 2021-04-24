@@ -2,6 +2,7 @@ import "./App.css";
 import React, { useState } from "react";
 import Display from "./components/display/Display";
 import Buttons from "./components/buttons/Buttons";
+import { HashRouter } from "react-router-dom";
 
 const App = React.memo((props) => {
   const [time, setTime] = useState({ h: 0, m: 0, s: 0 });
@@ -81,4 +82,12 @@ const App = React.memo((props) => {
   );
 });
 
-export default App;
+const AppWrapper = () => {
+  return (
+    <HashRouter>
+      <App />
+    </HashRouter>
+  );
+};
+
+export default AppWrapper;
