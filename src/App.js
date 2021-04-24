@@ -5,11 +5,8 @@ import Buttons from "./components/buttons/Buttons";
 
 const App = React.memo((props) => {
   const [time, setTime] = useState({ h: 0, m: 0, s: 0 });
-
-  const start = () => {
-    runTime();
-    setInterval(runTime, 1000);
-  };
+  const [interv, setInterv] = useState();
+  const [status, setStatus] = useState("stop");
 
   let updatedS = time.s,
     updatedM = time.m,
@@ -28,12 +25,27 @@ const App = React.memo((props) => {
     return setTime({ h: updatedH, m: updatedM, s: updatedS });
   };
 
+  const start = () => {
+    setInterv(setInterval(runTime, 1000));
+
+    setStatus("run");
+  };
+  const wait = () => {
+    clearInterval(interv);
+    setStatus("stop");
+  };
+  const stop = () => {
+    clearInterval(interv);
+    setStatus("stop");
+    setTime({ h: 0, m: 0, s: 0 });
+  };
+
   return (
     <div className="App">
       <div>
         <h1>Stopwatch</h1>
         <Display time={time} />
-        <Buttons start={start} />
+        <Buttons start={start} status={status} wait={wait} stop={stop} />
       </div>
     </div>
   );
