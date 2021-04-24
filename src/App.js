@@ -7,6 +7,7 @@ const App = React.memo((props) => {
   const [time, setTime] = useState({ h: 0, m: 0, s: 0 });
   const [interv, setInterv] = useState();
   const [status, setStatus] = useState("stop");
+  const [touchTime, setTouchTime] = useState(0);
 
   let updatedS = time.s,
     updatedM = time.m,
@@ -31,8 +32,17 @@ const App = React.memo((props) => {
     setStatus("run");
   };
   const wait = () => {
-    clearInterval(interv);
-    setStatus("stop");
+    if (touchTime == 0) {
+      setTouchTime(new Date().getTime());
+    } else {
+      if (new Date().getTime() - touchTime < 300) {
+        clearInterval(interv);
+        setStatus("stop");
+        setTouchTime(0);
+      } else {
+        setTouchTime(new Date().getTime());
+      }
+    }
   };
   const stop = () => {
     clearInterval(interv);
