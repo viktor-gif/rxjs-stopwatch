@@ -4,11 +4,11 @@ import s from "./Display.module.css";
 const Display = (props) => {
   return (
     <div className={s.watch}>
-      <span>{props.time.h >= 10 ? props.time.h : "0" + props.time.h}</span>
+      <span>{props.hours >= 10 ? props.hours : "0" + props.hours}</span>
       &nbsp;:&nbsp;
-      <span>{props.time.m >= 10 ? props.time.m : "0" + props.time.m}</span>
+      <span>{props.min >= 10 ? props.min : "0" + props.min}</span>
       &nbsp;:&nbsp;
-      <span>{props.time.s >= 10 ? props.time.s : "0" + props.time.s}</span>
+      <span>{props.sec >= 10 ? props.sec : "0" + props.sec}</span>
     </div>
   );
 };

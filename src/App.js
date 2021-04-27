@@ -3,17 +3,38 @@ import React, { useState } from "react";
 import Display from "./components/display/Display";
 import Buttons from "./components/buttons/Buttons";
 import { HashRouter } from "react-router-dom";
+import { concat, interval, Observable, of, Subject } from "rxjs";
+import {
+  map,
+  repeatWhen,
+  scan,
+  share,
+  startWith,
+  takeUntil,
+  takeWhile,
+  cleanInterval,
+} from "rxjs/operators";
 
 const App = React.memo((props) => {
-  const [time, setTime] = useState({ h: 0, m: 0, s: 0 });
-  const [interv, setInterv] = useState();
+  const [sec, setSec] = useState(0);
+  const [min, setMin] = useState(0);
+  const [hours, setHours] = useState(0);
+  // const [interv, setInterv] = useState();
   const [status, setStatus] = useState("stop");
   const [touchTime, setTouchTime] = useState(0);
+  const [test, setTest] = useState();
 
-  let updatedS = status === "reset" || status === "run" ? 0 : time.s,
-    updatedM = status === "reset" || status === "run" ? 0 : time.m,
-    updatedH = status === "reset" || status === "run" ? 0 : time.h;
+  const stream$ = new Observable((observer) => {
+    // setInterval(() => {
+    //   observer.next(setSec(sec + 1));
+    // }, 1000);
+  });
+  stream$.subscribe((val) => console.log("val: ", val));
 
+  const zeroingTimer = status === "reset" || status === "run";
+  let updatedS = zeroingTimer ? 0 : sec,
+    updatedM = zeroingTimer ? 0 : min,
+    updatedH = zeroingTimer ? 0 : hours;
   // function runTime increments the time
   const runTime = () => {
     if (updatedS === 60) {
@@ -25,23 +46,52 @@ const App = React.memo((props) => {
       updatedM = 0;
     }
     updatedS++;
-    return setTime({ h: updatedH, m: updatedM, s: updatedS });
+    console.log(updatedS);
+    setHours(updatedH);
+    setMin(updatedM);
+    setSec(updatedS);
+  };
+
+  const start$ = interval(1000)
+    .pipe(
+      startWith(0),
+      scan((time) => time + 1),
+      // takeWhile((status) => status !== "stop")
+      takeWhile((v) => v < 5)
+    )
+    .pipe(share());
+
+  const action$ = new Subject();
+
+  const stop$ = concat(start$, of(0)).pipe(repeatWhen(() => action$));
+
+  // const sub = () => start$.subscribe(setSec);
+  const a = () => {
+    const sub = start$.subscribe(setSec);
   };
 
   // functin start starts the stopwatch
   const start = () => {
-    setInterv(setInterval(runTime, 1000));
-
+    // const sub = start$.subscribe(setInterv(setInterval(runTime, 1000)));
+    start$.subscribe(setSec);
+    debugger;
     setStatus("run");
+    // return sub.unsubscribe();
   };
 
-  // function wait pauses the stopWatch
+  // function wait pauses the stopWatch using double click < 300ms
+  // (not doubleClick)
   const wait = () => {
     if (touchTime === 0) {
       setTouchTime(new Date().getTime());
     } else {
       if (new Date().getTime() - touchTime < 300) {
-        clearInterval(interv);
+        debugger;
+        setTimeout(() => {
+          start$.unsubscribe();
+        }, 10);
+
+        alert("hello");
         setStatus("stop");
         setTouchTime(0);
       } else {
@@ -52,24 +102,30 @@ const App = React.memo((props) => {
 
   // function stop resets the stopWatch and stops it
   const stop = () => {
-    clearInterval(interv);
+    // clearInterval(interv);
+    stop$.subscribe(setSec);
     setStatus("stop");
-    setTime({ h: 0, m: 0, s: 0 });
+    setSec(0);
+    setMin(0);
+    setHours(0);
   };
 
   // function stop resets the stopWatch and startsthe stopWatch again
   const reset = () => {
-    setStatus("reset");
-    setTime({ h: 0, m: 0, s: 0 });
-    clearInterval(interv);
-    setInterv(setInterval(runTime, 1000));
+    action$.next("reset");
+    setSec(0);
+    setMin(0);
+    setHours(0);
+    // clearInterval(interv);
+    // setInterv(setInterval(runTime, 1000));
   };
 
   return (
     <div className="App">
       <div>
+        <h1 onClick={a}>{test}sss</h1>
         <h1>Stopwatch</h1>
-        <Display time={time} />
+        <Display sec={sec} min={min} hours={hours} />
         <Buttons
           start={start}
           status={status}
