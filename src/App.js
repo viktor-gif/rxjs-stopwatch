@@ -120,6 +120,8 @@ const App = React.memo((props) => {
     // setInterv(setInterval(runTime, 1000));
   };
 
+  // learn RxJS
+
   return (
     <div className="App">
       <div>
@@ -134,6 +136,8 @@ const App = React.memo((props) => {
           reset={reset}
         />
       </div>
+      {/* learn RxJS */}
+      <div></div>
     </div>
   );
 });
