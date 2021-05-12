@@ -10,9 +10,10 @@ const App = React.memo((props) => {
   const [status, setStatus] = useState("stop");
   const [touchTime, setTouchTime] = useState(0);
 
-  let updatedS = status === "reset" || status === "run" ? 0 : time.s,
-    updatedM = status === "reset" || status === "run" ? 0 : time.m,
-    updatedH = status === "reset" || status === "run" ? 0 : time.h;
+  const isZero = status === "reset" || status === "run";
+  let updatedS = isZero ? 0 : time.s,
+    updatedM = isZero ? 0 : time.m,
+    updatedH = isZero ? 0 : time.h;
 
   // function runTime increments the time
   const runTime = () => {
@@ -25,7 +26,7 @@ const App = React.memo((props) => {
       updatedM = 0;
     }
     updatedS++;
-    return setTime({ h: updatedH, m: updatedM, s: updatedS });
+    setTime({ h: updatedH, m: updatedM, s: updatedS });
   };
 
   // functin start starts the stopwatch
@@ -42,7 +43,7 @@ const App = React.memo((props) => {
     } else {
       if (new Date().getTime() - touchTime < 300) {
         clearInterval(interv);
-        setStatus("stop");
+        setStatus("reset");
         setTouchTime(0);
       } else {
         setTouchTime(new Date().getTime());
