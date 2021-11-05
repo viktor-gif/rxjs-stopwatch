@@ -1,14 +1,14 @@
 import React from "react";
-import s from "./Display.module.css";
+import styles from "./Display.module.css";
 
-const Display = (props) => {
+const Display = ({s, m, h}) => {
   return (
-    <div className={s.watch}>
-      <span>{props.time.h >= 10 ? props.time.h : "0" + props.time.h}</span>
+    <div className={styles.watch}>
+      <span>{h >= 10 ? h : "0" + h}</span>
       &nbsp;:&nbsp;
-      <span>{props.time.m >= 10 ? props.time.m : "0" + props.time.m}</span>
+      <span>{m >= 10 ? m : "0" + m}</span>
       &nbsp;:&nbsp;
-      <span>{props.time.s >= 10 ? props.time.s : "0" + props.time.s}</span>
+      <span>{s >= 10 ? s : "0" + s}</span>
     </div>
   );
 };

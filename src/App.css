@@ -1,3 +1,19 @@
 .App {
   text-align: center;
 }
+.watch {
+  margin: 20px;
+  padding: 10px;
+  font-size: 40px;
+}
+.stopWatchButtons button {
+  margin: 10px;
+  background-color: grey;
+  border: 2px solid #000;
+  border-radius: 5px;
+  font-size: 20px;
+  padding: 5px;
+}
+.stopButton {
+  color: rgb(136, 38, 38);
+}

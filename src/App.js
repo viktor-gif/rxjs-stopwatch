@@ -1,43 +1,97 @@
 import "./App.css";
-import React, { useState } from "react";
-import Display from "./components/display/Display";
-import Buttons from "./components/buttons/Buttons";
+import React, { useEffect, useState } from "react";
 import { HashRouter } from "react-router-dom";
+import { interval } from "rxjs";
+import { debounce, debounceTime, share, take, takeUntil, takeWhile } from 'rxjs/operators';
+
 
 const App = React.memo((props) => {
-  const [time, setTime] = useState({ h: 0, m: 0, s: 0 });
-  const [interv, setInterv] = useState();
+  console.log('rerendered');
+
+  // const [time, setTime] = useState({ h: 0, m: 0, s: 0 });
+  const [s, setS] = useState(0);
+  const [m, setM] = useState(0);
+  const [h, setH] = useState(0);
+  const [interv, setInterv] = useState(interval(1000));
   const [status, setStatus] = useState("stop");
   const [touchTime, setTouchTime] = useState(0);
+  
+  useEffect(() => {
+    console.log(status);
 
-  const isZero = status === "reset" || status === "run";
-  let updatedS = isZero ? 0 : time.s,
-    updatedM = isZero ? 0 : time.m,
-    updatedH = isZero ? 0 : time.h;
+    let sub = interv.pipe(
+      takeWhile(() => status === "run")
+    ).subscribe((v) => {
+      setS((actual) => actual + 1)
+    });
+    console.log(status);
+    return () => {
+      sub.unsubscribe();
+      setS(0);
+    }
+  }, [status]);
 
-  // function runTime increments the time
-  const runTime = () => {
-    if (updatedS === 60) {
-      updatedM++;
-      updatedS = 0;
+  useEffect(() => {
+    console.log(status);
+
+    let sub = interv.pipe(
+      takeWhile(() => status === "reset" && status !== "before_reset"),
+    ).subscribe((v) => {
+      setS((actual) => actual + 1)
+    });
+    console.log(status);
+    return () => {
+      sub.unsubscribe();
+      setS(0);
     }
-    if (updatedM === 60) {
-      updatedH++;
-      updatedM = 0;
-    }
-    updatedS++;
-    setTime({ h: updatedH, m: updatedM, s: updatedS });
-  };
+    
+  }, [status]);
+
 
   // functin start starts the stopwatch
   const start = () => {
-    setInterv(setInterval(runTime, 1000));
-
     setStatus("run");
   };
 
-  // function wait pauses the stopWatch
+  // function stop stops the stopwatch
+  const stop = () => {
+    setStatus("stop");
+  };
+  
+  const reset = () => {
+    setStatus("reset");
+    setS(0);
+
+    if (touchTime === 0) {
+      setTouchTime(new Date().getTime());
+    } else {
+      if (new Date().getTime() - touchTime > 0) {
+        let sub = interv.pipe(
+          takeWhile(() => status === "reset"),
+        ).subscribe((v) => {
+          setS((actual) => actual + 1)
+        });
+        sub.unsubscribe();
+      } else {
+        setTouchTime(new Date().getTime());
+      }
+      setTouchTime(0)
+    }
+
+    // let sub = interv.pipe(
+    //   takeWhile(() => status === "reset"),
+    // ).subscribe((v) => {
+    //   setS((actual) => actual + 1)
+    // });
+    // console.log(status);
+    
+      // sub.unsubscribe();
+    
+  };
+
   const wait = () => {
+    setStatus("wait");
+
     if (touchTime === 0) {
       setTouchTime(new Date().getTime());
     } else {
@@ -51,37 +105,50 @@ const App = React.memo((props) => {
     }
   };
 
-  // function stop resets the stopWatch and stops it
-  const stop = () => {
-    clearInterval(interv);
-    setStatus("stop");
-    setTime({ h: 0, m: 0, s: 0 });
-  };
-
-  // function stop resets the stopWatch and startsthe stopWatch again
-  const reset = () => {
-    setStatus("reset");
-    setTime({ h: 0, m: 0, s: 0 });
-    clearInterval(interv);
-    setInterv(setInterval(runTime, 1000));
-  };
-
   return (
     <div className="App">
       <div>
         <h1>Stopwatch</h1>
-        <Display time={time} />
+        <Display s={s} m={m} h={h} />
         <Buttons
           start={start}
           status={status}
-          wait={wait}
+          s={s}
           stop={stop}
           reset={reset}
+          wait={wait}
         />
       </div>
     </div>
   );
 });
+
+const Display = ({s, m, h}) => {
+  return (
+    <div className="watch">
+      <span>{h >= 10 ? h : "0" + h}</span>
+      &nbsp;:&nbsp;
+      <span>{m >= 10 ? m : "0" + m}</span>
+      &nbsp;:&nbsp;
+      <span>{s >= 10 ? s : "0" + s}</span>
+    </div>
+  );
+};
+
+const Buttons = (props) => {
+  return (
+    <div className="stopWatchButtons">
+      {props.status === "stop" && <button onClick={props.start}>Start</button>}
+      {(props.status === "run" || props.status === "reset" || props.status === "wait") && (
+        <button onClick={props.stop} className="stopButton">
+          Stop
+        </button>
+      )}
+      <button onClick={props.wait}>Wait</button>
+      <button onClick={props.reset}>Reset</button>
+    </div>
+  );
+};
 
 const AppWrapper = () => {
   return (
