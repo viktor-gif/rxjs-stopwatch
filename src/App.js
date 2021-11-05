@@ -16,7 +16,7 @@ const App = React.memo((props) => {
   //useEffect depends on the status 
   useEffect(() => {
 
-    let sub = interval(10).pipe(
+    let sub = interval(1000).pipe(
       takeWhile(() => status === "run" || status === "reset" || status === "continue")
     ).subscribe((v) => {
       setS((actual) => actual + 1)
