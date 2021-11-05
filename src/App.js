@@ -16,7 +16,7 @@ const App = React.memo((props) => {
   //useEffect depends on the status 
   useEffect(() => {
 
-    let sub = interval(1000).pipe(
+    let sub = interval(10).pipe(
       takeWhile(() => status === "run" || status === "reset" || status === "continue")
     ).subscribe((v) => {
       setS((actual) => actual + 1)
@@ -64,9 +64,8 @@ const App = React.memo((props) => {
     setStatus("reset");
   };
 
-  // function wait stops the stopwatch (2 clicks, debounce < 300ms) and continues (1 click)
+  // function wait pauses the stopwatch (2 clicks, debounce < 300ms)
   const wait = () => {
-    setStatus("continue");
     if (touchTime === 0) {
       setTouchTime(new Date().getTime());
     } else {
@@ -77,6 +76,11 @@ const App = React.memo((props) => {
       }
     }
   };
+
+  // functin runContinue starts the stopwatch after pause
+  const runContinue = () => {
+    setStatus("continue");
+  }
 
   return (
     <div className="App">
@@ -90,6 +94,7 @@ const App = React.memo((props) => {
           stop={stop}
           reset={reset}
           wait={wait}
+          runContinue={runContinue}
         />
       </div>
     </div>
@@ -108,20 +113,21 @@ const Display = ({s, m, h}) => {
   );
 };
 
-const Buttons = ({start, stop, wait, reset, status}) => {
+const Buttons = ({start, stop, wait, reset, status, runContinue}) => {
   const isStopButton = status === "run" 
-  || status === "reset" 
-  || status === "wait" 
+  || status === "reset"
   || status === "continue";
   return (
     <div className="stopWatchButtons">
+
       {status === "stop" && <button onClick={start}>Start</button>}
-      {isStopButton && (
-        <button onClick={stop} className="stopButton">
-          Stop
-        </button>
-      )}
+
+      {status === "wait" && <button onClick={runContinue}>Start</button>}
+
+      {isStopButton && <button onClick={stop} className="stopButton">Stop</button>}
+
       <button onClick={wait}>Wait</button>
+
       <button onClick={reset} id="reset">Reset</button>
     </div>
   );
