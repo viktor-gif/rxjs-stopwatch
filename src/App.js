@@ -2,103 +2,76 @@ import "./App.css";
 import React, { useEffect, useState } from "react";
 import { HashRouter } from "react-router-dom";
 import { interval } from "rxjs";
-import { debounce, debounceTime, share, take, takeUntil, takeWhile } from 'rxjs/operators';
+import { takeWhile } from 'rxjs/operators';
 
 
 const App = React.memo((props) => {
-  console.log('rerendered');
 
-  // const [time, setTime] = useState({ h: 0, m: 0, s: 0 });
   const [s, setS] = useState(0);
   const [m, setM] = useState(0);
   const [h, setH] = useState(0);
-  const [interv, setInterv] = useState(interval(1000));
   const [status, setStatus] = useState("stop");
   const [touchTime, setTouchTime] = useState(0);
-  
-  useEffect(() => {
-    console.log(status);
 
-    let sub = interv.pipe(
-      takeWhile(() => status === "run")
+  //useEffect depends on the status 
+  useEffect(() => {
+
+    let sub = interval(1000).pipe(
+      takeWhile(() => status === "run" || status === "reset" || status === "continue")
     ).subscribe((v) => {
       setS((actual) => actual + 1)
     });
-    console.log(status);
-    return () => {
-      sub.unsubscribe();
-      setS(0);
-    }
-  }, [status]);
-
-  useEffect(() => {
-    console.log(status);
-
-    let sub = interv.pipe(
-      takeWhile(() => status === "reset" && status !== "before_reset"),
-    ).subscribe((v) => {
-      setS((actual) => actual + 1)
-    });
-    console.log(status);
-    return () => {
-      sub.unsubscribe();
-      setS(0);
-    }
     
+    if (status !== "wait" && status !== "continue") {
+      zeroingStopwatch();
+    }
+
+    return () => {
+      sub.unsubscribe();
+    }
+
   }, [status]);
 
+  const zeroingStopwatch = () => {
+    setS(0);
+    setM(0);
+    setH(0);
+  }
+  
+  // formatting the stopwatch
+  if (s === 60) {
+    setS(0);
+    setM(actual => actual + 1);
+  }
+  if (m === 60) {
+    setM(0);
+    setH(actual => actual + 1);
+  }
 
   // functin start starts the stopwatch
   const start = () => {
     setStatus("run");
   };
 
-  // function stop stops the stopwatch
+  // function stop stops and resets the stopwatch
   const stop = () => {
     setStatus("stop");
   };
   
+  // function reset resets the stopwatch and continues from start(zero)
   const reset = () => {
+    zeroingStopwatch();
     setStatus("reset");
-    setS(0);
-
-    if (touchTime === 0) {
-      setTouchTime(new Date().getTime());
-    } else {
-      if (new Date().getTime() - touchTime > 0) {
-        let sub = interv.pipe(
-          takeWhile(() => status === "reset"),
-        ).subscribe((v) => {
-          setS((actual) => actual + 1)
-        });
-        sub.unsubscribe();
-      } else {
-        setTouchTime(new Date().getTime());
-      }
-      setTouchTime(0)
-    }
-
-    // let sub = interv.pipe(
-    //   takeWhile(() => status === "reset"),
-    // ).subscribe((v) => {
-    //   setS((actual) => actual + 1)
-    // });
-    // console.log(status);
-    
-      // sub.unsubscribe();
-    
   };
 
+  // function wait stops the stopwatch (2 clicks, debounce < 300ms) and continues (1 click)
   const wait = () => {
-    setStatus("wait");
-
+    setStatus("continue");
     if (touchTime === 0) {
       setTouchTime(new Date().getTime());
     } else {
       if (new Date().getTime() - touchTime < 300) {
-        clearInterval(interv);
-        setStatus("reset");
-        setTouchTime(0);
+        setStatus("wait");
       } else {
         setTouchTime(new Date().getTime());
       }
@@ -135,17 +108,21 @@ const Display = ({s, m, h}) => {
   );
 };
 
-const Buttons = (props) => {
+const Buttons = ({start, stop, wait, reset, status}) => {
+  const isStopButton = status === "run" 
+  || status === "reset" 
+  || status === "wait" 
+  || status === "continue";
   return (
     <div className="stopWatchButtons">
-      {props.status === "stop" && <button onClick={props.start}>Start</button>}
-      {(props.status === "run" || props.status === "reset" || props.status === "wait") && (
-        <button onClick={props.stop} className="stopButton">
+      {status === "stop" && <button onClick={start}>Start</button>}
+      {isStopButton && (
+        <button onClick={stop} className="stopButton">
           Stop
         </button>
       )}
-      <button onClick={props.wait}>Wait</button>
-      <button onClick={props.reset}>Reset</button>
+      <button onClick={wait}>Wait</button>
+      <button onClick={reset} id="reset">Reset</button>
     </div>
   );
 };
