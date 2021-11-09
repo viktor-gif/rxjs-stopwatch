@@ -12,6 +12,7 @@ const App = React.memo((props) => {
   const [h, setH] = useState(0);
   const [status, setStatus] = useState("stop");
   const [touchTime, setTouchTime] = useState(0);
+  const [isReset, setIsReset] = useState(false);
 
   //useEffect depends on the status 
   useEffect(() => {
@@ -30,7 +31,7 @@ const App = React.memo((props) => {
       sub.unsubscribe();
     }
 
-  }, [status]);
+  }, [status, isReset]);
 
   const zeroingStopwatch = () => {
     setS(0);
@@ -60,8 +61,8 @@ const App = React.memo((props) => {
   
   // function reset resets the stopwatch and continues from start(zero)
   const reset = () => {
-    zeroingStopwatch();
     setStatus("reset");
+    isReset ? setIsReset(false) : setIsReset(true);
   };
 
   // function wait pauses the stopwatch (2 clicks, debounce < 300ms)
